@@ -1,0 +1,36 @@
+name: trelix index
+description: Index a repository with trelix for AI-powered code search
+author: sairam0424
+branding:
+  icon: search
+  color: green
+inputs:
+  repo-path:
+    description: Path to repo
+    default: "."
+    required: false
+  provider:
+    description: "local|openai|azure|voyage"
+    default: local
+    required: false
+outputs:
+  index-path:
+    description: Path to .trelix/index.db
+    value: "${{ steps.index.outputs.index-path }}"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - uses: actions/cache@v4
+      with:
+        path: "${{ inputs.repo-path }}/.trelix/"
+        key: "trelix-index-${{ github.sha }}"
+    - shell: bash
+      run: pip install "trelix>=0.4.0" -q
+    - id: index
+      shell: bash
+      run: |
+        trelix index "${{ github.workspace }}/${{ inputs.repo-path }}" --provider "${{ inputs.provider }}"
+        echo "index-path=${{ github.workspace }}/${{ inputs.repo-path }}/.trelix/index.db" >> "$GITHUB_OUTPUT"
