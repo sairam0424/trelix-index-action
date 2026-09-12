@@ -1,0 +1,29 @@
+language: en-US
+enable_free_tier: true
+
+reviews:
+  profile: assertive
+  auto_review:
+    enabled: true
+    ignore_usernames: ["dependabot[bot]"]
+  path_instructions:
+    - path: "action.yml"
+      instructions: "Flag any change to inputs/outputs that is not backward compatible for existing consumers of this action."
+    - path: "**/*.yml"
+      instructions: >
+        Apply GitHub Actions security hardening review: check for script
+        injection via dynamic expression interpolation of untrusted context
+        (PR title/body/branch name), unpinned third-party action refs
+        (should be pinned to a full commit SHA, not a mutable tag), and
+        overly broad GITHUB_TOKEN permissions.
+  tools:
+    actionlint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    zizmor:
+      enabled: true
+
+knowledge_base:
+  learnings:
+    scope: local
