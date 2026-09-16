@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: Smoke test composite action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Run trelix-index-action against this repo
+        id: trelix
+        uses: ./
+        with:
+          repo-path: .
+          provider: local
+
+      - name: Verify index output was produced
+        shell: bash
+        run: |
+          set -euo pipefail
+          index_path="${{ steps.trelix.outputs.index-path }}"
+          if [ -z "$index_path" ]; then
+            echo "::error::index-path output was not set"
+            exit 1
+          fi
+          if [ ! -f "$index_path" ]; then
+            echo "::error::Expected index file at $index_path but it was not found"
+            exit 1
+          fi
+          echo "Index produced at $index_path"
