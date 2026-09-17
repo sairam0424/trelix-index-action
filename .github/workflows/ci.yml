@@ -21,7 +21,11 @@ jobs:
 
       - name: Run trelix-index-action against this repo
         id: trelix
-        uses: ./
+        # zizmor wants $/ (its newer self-repository syntax) here, but that
+        # form requires a non-empty path - actionlint rejects a bare $/ for
+        # a repo-root action ("path is missing"). ./ is the only valid form
+        # for this case; zizmor's own fix for it is already flagged Unsafe.
+        uses: ./ # zizmor: ignore[self-repository]
         with:
           repo-path: .
           provider: local
