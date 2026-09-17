@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: Smoke test composite action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run trelix-index-action against this repo
+        id: trelix
+        # zizmor wants $/ (its newer self-repository syntax) here, but that
+        # form requires a non-empty path - actionlint rejects a bare $/ for
+        # a repo-root action ("path is missing"). ./ is the only valid form
+        # for this case; zizmor's own fix for it is already flagged Unsafe.
+        uses: ./ # zizmor: ignore[self-repository]
+        with:
+          repo-path: .
+          provider: local
+
+      - name: Verify index output was produced
+        shell: bash
+        env:
+          INDEX_PATH: ${{ steps.trelix.outputs.index-path }}
+        run: |
+          set -euo pipefail
+          index_path="${INDEX_PATH}"
+          if [ -z "$index_path" ]; then
+            echo "::error::index-path output was not set"
+            exit 1
+          fi
+          if [ ! -f "$index_path" ]; then
+            echo "::error::Expected index file at $index_path but it was not found"
+            exit 1
+          fi
+          echo "Index produced at $index_path"
